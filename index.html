@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cirque du Soil – Analytics</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 2rem;
+            background: #111;
+            color: #eee;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            padding: 8px 12px;
+            border: 1px solid #333;
+            text-align: left;
+        }
+
+        th {
+            background: #222;
+        }
+
+        tr:nth-child(even) {
+            background: #1a1a1a;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Analytics</h1>
+    <p id="meta"></p>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Player</th>
+                <th>Build</th>
+                <th>Session Start</th>
+                <th>Session End</th>
+                <th>Interactions</th>
+            </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+    </table>
+    <script>
+        fetch('data.json')
+            .then(r => r.json())
+            .then(rows => {
+                document.getElementById('meta').textContent = `${rows.length} sessions`;
+                document.getElementById('rows').innerHTML = rows.map(r => `
+          <tr>
+            <td>${r.id}</td>
+            <td>${r.player_id ?? '–'}</td>
+            <td>${r.build_id ?? '–'}</td>
+            <td>${r.session_start ? new Date(r.session_start).toLocaleString() : '–'}</td>
+            <td>${r.session_end ? new Date(r.session_end).toLocaleString() : '–'}</td>
+            <td>${r.total_interactions ?? 0}</td>
+          </tr>`).join('');
+            });
+    </script>
+</body>
+
+</html>
