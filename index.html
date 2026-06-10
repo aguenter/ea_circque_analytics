@@ -1,70 +1,412 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 
 <head>
     <meta charset="UTF-8">
-    <title>Cirque du Soil – Analytics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cirque du Soil – Auswertung</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0d0d12;
+            --surface: #13131a;
+            --surface2: #1a1a24;
+            --border: rgba(255, 255, 255, 0.07);
+            --accent: #7c6af7;
+            --accent2: #4fa3f7;
+            --text: #f0f0f5;
+            --muted: #6b6b80;
+            --success: #3ecf8e;
+        }
+
         body {
-            font-family: sans-serif;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── Header ─────────────────────────────────────── */
+        header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            flex-shrink: 0;
+        }
+
+        header h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text);
+        }
+
+        header .subtitle {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 1px;
+        }
+
+        .header-badge {
+            margin-left: auto;
+            padding: 4px 10px;
+            background: rgba(124, 106, 247, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(124, 106, 247, 0.3);
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        /* ── Main layout ─────────────────────────────────── */
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
             padding: 2rem;
-            background: #111;
-            color: #eee;
         }
 
-        table {
-            border-collapse: collapse;
-            width: 100%;
+        /* ── Filter bar ──────────────────────────────────── */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: flex-end;
+            margin-bottom: 2rem;
+            padding: 1.25rem 1.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
         }
 
-        th,
-        td {
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+
+        .filter-bar select,
+        .filter-bar input[type="date"] {
+            appearance: none;
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
             padding: 8px 12px;
-            border: 1px solid #333;
-            text-align: left;
+            font-size: 0.875rem;
+            font-family: inherit;
+            min-width: 155px;
+            color-scheme: dark;
+            cursor: pointer;
+            transition: border-color 0.15s;
         }
 
-        th {
-            background: #222;
+        .filter-bar select:hover,
+        .filter-bar input[type="date"]:hover {
+            border-color: rgba(255, 255, 255, 0.18);
         }
 
-        tr:nth-child(even) {
-            background: #1a1a1a;
+        .filter-bar select:focus,
+        .filter-bar input[type="date"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124, 106, 247, 0.18);
+        }
+
+        #reset-btn {
+            padding: 8px 16px;
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-family: inherit;
+            font-weight: 500;
+            align-self: flex-end;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+
+        #reset-btn:hover {
+            background: var(--surface2);
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        /* ── Stat grid ───────────────────────────────────── */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            position: relative;
+            overflow: hidden;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem 1.5rem 1.25rem;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.14);
+            transform: translateY(-2px);
+        }
+
+        /* coloured top accent line per card */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 14px 14px 0 0;
+        }
+
+        .card:nth-child(1)::before {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+        }
+
+        .card:nth-child(2)::before {
+            background: linear-gradient(90deg, var(--success), #22c55e);
+        }
+
+        .card:nth-child(3)::before {
+            background: linear-gradient(90deg, var(--accent2), #38bdf8);
+        }
+
+        .card:nth-child(4)::before {
+            background: linear-gradient(90deg, #f97316, #fbbf24);
+        }
+
+        .card .icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .card:nth-child(1) .icon {
+            background: rgba(124, 106, 247, 0.15);
+        }
+
+        .card:nth-child(2) .icon {
+            background: rgba(62, 207, 142, 0.15);
+        }
+
+        .card:nth-child(3) .icon {
+            background: rgba(79, 163, 247, 0.15);
+        }
+
+        .card:nth-child(4) .icon {
+            background: rgba(249, 115, 22, 0.15);
+        }
+
+        .card .label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 0.4rem;
+        }
+
+        .card .value {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1;
+            letter-spacing: -0.03em;
+        }
+
+        .card .sub {
+            font-size: 0.76rem;
+            color: var(--muted);
+            margin-top: 0.4rem;
         }
     </style>
 </head>
 
 <body>
-    <h1>Analytics</h1>
-    <p id="meta"></p>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Player</th>
-                <th>Build</th>
-                <th>Session Start</th>
-                <th>Session End</th>
-                <th>Interactions</th>
-            </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-    </table>
+
+    <header>
+        <div class="logo"></div>
+        <div>
+            <h1>Cirque du Soil</h1>
+            <div class="subtitle">Spielauswertung</div>
+        </div>
+        <span class="header-badge">Live</span>
+    </header>
+
+    <main>
+
+        <!-- Filter -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label for="device-select">Gerät</label>
+                <select id="device-select">
+                    <option value="">— Gerät wählen —</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="date-from">Sitzungsbeginn – Von</label>
+                <input type="date" id="date-from">
+            </div>
+            <div class="filter-group">
+                <label for="date-to">Sitzungsbeginn – Bis</label>
+                <input type="date" id="date-to">
+            </div>
+            <button id="reset-btn">Zurücksetzen</button>
+        </div>
+
+        <!-- Statistik-Kacheln -->
+        <div class="stats">
+            <div class="card">
+                <div class="icon">👥</div>
+                <div class="label">Gesamtanzahl Spieler</div>
+                <div class="value" id="stat-players">–</div>
+                <div class="sub">eindeutige Spieler-IDs</div>
+            </div>
+            <div class="card">
+                <div class="icon">⏱</div>
+                <div class="label">Gesamte Sitzungszeit</div>
+                <div class="value" id="stat-time">–</div>
+                <div class="sub">über alle gefilterten Sitzungen</div>
+            </div>
+            <div class="card">
+                <div class="icon">🎮</div>
+                <div class="label">Sitzungen</div>
+                <div class="value" id="stat-sessions">–</div>
+                <div class="sub">übereinstimmende Einträge</div>
+            </div>
+            <div class="card">
+                <div class="icon">⚡</div>
+                <div class="label">Interaktionen gesamt</div>
+                <div class="value" id="stat-interactions">–</div>
+                <div class="sub">über alle gefilterten Sitzungen</div>
+            </div>
+        </div>
+
+    </main>
+
     <script>
+        let allRows = [];
+
+        // ── Helpers ──────────────────────────────────────────────
+        function formatDuration(ms) {
+            if (ms < 0 || isNaN(ms)) return '–';
+            const h = Math.floor(ms / 3_600_000);
+            const m = Math.floor((ms % 3_600_000) / 60_000);
+            const s = Math.floor((ms % 60_000) / 1_000);
+            if (h > 0) return `${h}h ${m}m`;
+            if (m > 0) return `${m}m ${s}s`;
+            return `${s}s`;
+        }
+
+        // ── Filtering ─────────────────────────────────────────────
+        function getFiltered() {
+            const device = document.getElementById('device-select').value;
+            const from = document.getElementById('date-from').value;
+            const to = document.getElementById('date-to').value;
+            // date inputs give YYYY-MM-DD; compare against start of/end of that day
+            const fromMs = from ? new Date(from + 'T00:00:00').getTime() : null;
+            const toMs = to ? new Date(to + 'T23:59:59').getTime() : null;
+
+            return allRows.filter(r => {
+                if (device && r.device_id !== device) return false;
+                if (r.session_start) {
+                    const t = new Date(r.session_start).getTime();
+                    if (fromMs !== null && t < fromMs) return false;
+                    if (toMs !== null && t > toMs) return false;
+                }
+                return true;
+            });
+        }
+
+        // ── Render ────────────────────────────────────────────────
+        function render() {
+            const rows = getFiltered();
+
+            const uniquePlayers = new Set(rows.map(r => r.player_id).filter(Boolean)).size;
+            const totalInteract = rows.reduce((s, r) => s + (r.total_interactions ?? 0), 0);
+            const totalMs = rows.reduce((s, r) => {
+                if (r.session_start && r.session_end) {
+                    const d = new Date(r.session_end) - new Date(r.session_start);
+                    return s + (d > 0 ? d : 0);
+                }
+                return s;
+            }, 0);
+
+            document.getElementById('stat-players').textContent = uniquePlayers;
+            document.getElementById('stat-time').textContent = formatDuration(totalMs);
+            document.getElementById('stat-sessions').textContent = rows.length;
+            document.getElementById('stat-interactions').textContent = totalInteract.toLocaleString('de-DE');
+        }
+
+        // ── Bootstrap ─────────────────────────────────────────────
         fetch('data.json')
             .then(r => r.json())
-            .then(rows => {
-                document.getElementById('meta').textContent = `${rows.length} sessions`;
-                document.getElementById('rows').innerHTML = rows.map(r => `
-          <tr>
-            <td>${r.id}</td>
-            <td>${r.player_id ?? '–'}</td>
-            <td>${r.build_id ?? '–'}</td>
-            <td>${r.session_start ? new Date(r.session_start).toLocaleString() : '–'}</td>
-            <td>${r.session_end ? new Date(r.session_end).toLocaleString() : '–'}</td>
-            <td>${r.total_interactions ?? 0}</td>
-          </tr>`).join('');
+            .then(data => {
+                allRows = data;
+
+                const devices = [...new Set(data.map(r => r.device_id).filter(Boolean))].sort();
+                const sel = document.getElementById('device-select');
+                devices.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = d;
+                    sel.appendChild(opt);
+                });
+
+                render();
             });
+
+        // ── Event listeners ───────────────────────────────────────
+        document.getElementById('device-select').addEventListener('change', render);
+        document.getElementById('date-from').addEventListener('change', render);
+        document.getElementById('date-to').addEventListener('change', render);
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            document.getElementById('device-select').value = '';
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+            render();
+        });
     </script>
 </body>
 
